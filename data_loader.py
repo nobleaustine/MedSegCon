@@ -4,48 +4,76 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import pydicom
 import os
-import random
 import nibabel as nib
+import pickle
+
+def pad_and_stack(pixel_arrays):
+
+    # Find the maximum size along the first axis
+    max_size = max(arr.shape[0] for arr in pixel_arrays)
+
+    # Create a list to store padded or cropped arrays
+    padded_arrays = []
+
+    # Pad or crop each array to the maximum size along the first axis
+    for arr in pixel_arrays:
+        # Calculate padding or cropping
+        pad_width = ((0, max_size - arr.shape[0]), (0, 0), (0, 0))
+
+        # Pad or crop along the first axis
+        padded_array = np.pad(arr, pad_width, mode='constant', constant_values=0)
+
+        # Append the padded or cropped array to the list
+        padded_arrays.append(padded_array)
+
+    # Stack the padded or cropped arrays along the first axis
+    stacked_array = np.stack(padded_arrays, axis=0)
+
+    return stacked_array
+
+def add_matrix(hdf5_file, dataset_name, matrix):
+    with h5py.File(hdf5_file, 'a') as file:
+        # Create or open the dataset
+        if dataset_name not in file:
+            file.create_dataset(dataset_name, data=matrix, maxshape=(None, matrix.shape[1],matrix.shape[2],matrix.shape[3]), chunks=True)
+        else:
+            # Resize the dataset to accommodate the new matrix
+            file[dataset_name].resize((file[dataset_name].shape[0] + 1), axis=0)
+            file[dataset_name][-1, ...] = matrix
 
 def read_nii_new(paths):
     niis = []
+    
     for path in paths:
         if os.path.isfile(path):
             nii_slice = nib.load(path)
             niis.append(nii_slice)
         else:
             print(f"Error : {path}")
-        labels = [nii.get_fdata() for nii in niis]
+
+    segments = [nii.get_fdata() for nii in niis]
+    segments = [np.transpose(s, (2, 0, 1)) for s in segments]
+    labels = pad_and_stack(segments)
+
     return labels
-
-# read DICOM images and rescale to 0-1
-def read_dicom(paths):
-    #reading dicom files
-    slices = [pydicom.read_file(path) for path in paths]
-    
-    # Convert to numpy
-    scans = np.stack([s.pixel_array for s in slices])
-    scans = scans.astype(np.int16)
-    
-    # converting to range with in 0-1
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    image_shape = scans[0].shape
-    images = np.array([(scaler.fit_transform(img.reshape(-1,1))).reshape(image_shape) for img in scans],dtype=np.float32)
-
-    return images
 
 def read_dicom_new(paths):
     slices = []
     # dicom paths
     for path in paths:
+        # print("path ",path)
         if os.path.isfile(path):
             dicom_slice = pydicom.read_file(path)
             slices.append(dicom_slice)
         else:
-            print(f"Error : {path}")
-    
+            print("error",path)
+    # max_z_size=[(s.pixel_array).shape for s in slices]
+    slices = [s.pixel_array for s in slices]
+
     # Convert to numpy
-    scans = np.stack([s.pixel_array for s in slices])
+    #scans = np.stack([s.pixel_array for s in slices])
+    scans = pad_and_stack(slices)
+
     scans = scans.astype(np.int16)
     
     # converting to range within 0-1
@@ -55,93 +83,19 @@ def read_dicom_new(paths):
 
     return images
 
-# get nifti images
-def read_nii(paths):
-    # read and covert to numpy
-    niis = [nib.load(path) for path in paths]
-    labels = [nii.get_fdata() for nii in niis]
+with open("paths_list.pickle","rb") as file:
+    loaded_list = pickle.load(file)
 
-    return labels
+raw_paths = list(loaded_list["final_raw"])
+label_paths = list(loaded_list["final_label"])
+c=1
+for raw, label in zip(raw_paths,label_paths):
+    print("LAP:",c)
+    dicom_matrices = read_dicom_new(raw)
+    nii_matrices = read_nii_new(label)
+    file_name = f"Lap {c}.h5"
     
-# function to get all DICOM paths
-def get_dicom_paths(root_path,animal_1):
-
-    data = {}
-    label = {}
-
-    img1 =  "kontrast\DICOM\ST00001\SE00001\IM0000"
-    img2 =  "kontrast i mageleie\DICOM\ST00001\SE00001\IM0000"
-    
-    raw_paths = []
-    label_paths = []
-
-    animal_1 = root_path + animal_1
-    round_paths = []
-    animal_paths = []
-    
-    # taking all rounds and animal paths
-    round_paths = [os.path.join(root_path, d) for d in os.listdir(root_path) if os.path.isdir(os.path.join(root_path, d))]
-    animal_paths = [d for d in os.listdir(animal_1) if os.path.isdir(os.path.join(animal_1, d))]
-    
-    # going through each round and each animal and taking 1st and 5th
-    for round in round_paths:
-        for animal in animal_paths:
-            main = round + "\\" + animal
-            if os.path.isfile(main + "\Hjerte med " + img1 + "1") :
-                file_path1 = main + "\Hjerte med " + img1 + "1"
-                file_path2 = main + "\Hjerte uten " + img1 + "1"
-                file_path3 = main + "\Hjerte med " + img1 + "1.nii.gz"
-                raw_paths.append(file_path1)
-                raw_paths.append(file_path2)
-                label_paths.append(file_path3)
-                label_paths.append(file_path3)
-
-                file_path1 = main + "\Hjerte med " + img1 + "5"
-                file_path2 = main + "\Hjerte uten " + img1 + "5"
-                file_path3 = main + "\Hjerte med " + img1 + "5.nii.gz"
-                raw_paths.append(file_path1)
-                raw_paths.append(file_path2)
-                label_paths.append(file_path3)
-                label_paths.append(file_path3)
-            else:
-                file_path1 = main + "\Hjerte med " + img2 + "1"
-                file_path2 = main + "\Hjerte uten " + img2 + "1"
-                file_path3 = main + "\Hjerte med " + img2 + "1.nii.gz"
-                raw_paths.append(file_path1)
-                raw_paths.append(file_path2)
-                label_paths.append(file_path3)
-                label_paths.append(file_path3)
-
-                file_path1 = main + "\Hjerte med " + img2 + "5"
-                file_path2 = main + "\Hjerte uten " + img2 + "5"
-                file_path3 = main + "\Hjerte med " + img2 + "5.nii.gz"
-                raw_paths.append(file_path1)
-                raw_paths.append(file_path2)
-                label_paths.append(file_path3)
-                label_paths.append(file_path3)
-
-        
-
-    combined_list = list(zip(raw_paths,label_paths))
-    random.shuffle(combined_list)
-    raw_paths,label_paths = zip(*combined_list)
-
-    # check values by printing
-    # for i,j in zip(raw_paths,label_paths):
-    #     print(i)
-    #     print(j)
-
-    return raw_paths,label_paths
-
-raw_paths,label_paths= get_dicom_paths("D:\\Norsvin - CT Segmentation Data","\\AHFP-Scanrunde-1") 
-raw_data = read_dicom_new(raw_paths)
-label_data = read_nii_new(label_paths)
-
-# dataset path
-file_path = 'dataset.h5'
-
-# Create a new HDF5 file with raw and label
-with h5py.File(file_path, 'w') as file:
-   
-    file.create_dataset('raw', data=raw_data)
-    file.create_dataset('label', data=label_data)
+    print("hdf5 file uploading ...")
+    add_matrix(file_name, "data", dicom_matrices)
+    add_matrix(file_name, "label", nii_matrices)
+    c+=1

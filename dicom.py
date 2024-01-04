@@ -2,11 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import pydicom
+import os
 
 data_paths = [
-    "D:\\Norsvin - CT Segmentation Data\\AHFP-Scanrunde-1\\Kontroll 1 - 7569 - Norsvin AHFP\\Hjerte med kontrast (heart with contrast)\\DICOM\\ST00001\\SE00001\\IM00001",
-    "D:\\Norsvin - CT Segmentation Data\\AHFP-Scanrunde-1\\Kontroll 1 - 7569 - Norsvin AHFP\\Hjerte med kontrast (heart with contrast)\\DICOM\\ST00001\\SE00001\\IM00002",
-    "D:\\Norsvin - CT Segmentation Data\\AHFP-Scanrunde-1\\Kontroll 1 - 7569 - Norsvin AHFP\\Hjerte med kontrast (heart with contrast)\\DICOM\\ST00001\\SE00001\\IM00003"
+   "D:\\Norsvin - CT Segmentation Data\\AHFP-Scanrunde-1\\Kontroll 1 - 7569 - Norsvin AHFP\\Hjerte med kontrast\\DICOM\\ST00001\\SE00001",
+   "D:\\Norsvin - CT Segmentation Data\\AHFP-Scanrunde-1\\Kontroll 1 - 7569 - Norsvin AHFP\\Hjerte med kontrast\\DICOM\\ST00001\\SE00002",
+   "D:\\Norsvin - CT Segmentation Data\\AHFP-Scanrunde-1\\Kontroll 1 - 7569 - Norsvin AHFP\\Hjerte med kontrast\\DICOM\\ST00001\\SE00003"
+
 ]
 
 
@@ -30,12 +32,22 @@ def con_hounsfield(scans):
     return images
 
 def read_dicom(paths):
-    #reaing dicom files
-    slices = [pydicom.read_file(path) for path in paths]
+    slices = []
+    for p in paths:
+        # print("path ",path)
+        if os.path.isfile(p):
+            dicom_slice = pydicom.read_file(p)
+            slices.append(dicom_slice)
+        else:
+            print("error",p)
     
     # Convert to numpy
     scans = np.stack([s.pixel_array for s in slices])
-    scans = scans.astype(np.int16)
+    # scans = scans.astype(np.int16)
+
+    for s in scans:
+        print(max(s))
+
     
     # convertin to range with in 0-1
     scaler = MinMaxScaler(feature_range=(0, 1))

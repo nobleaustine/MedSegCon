@@ -1,20 +1,33 @@
-import h5py
+import pickle
 
-def print_hdf5_structure(group, indent=0):
-    """Recursively print the structure and contents of an HDF5 group."""
-    items = list(group.items())
+with open("paths.pickle","rb") as file:
+    loaded_list = pickle.load(file)
 
-    for name, item in items:
-        if isinstance(item, h5py.Group):
-            print(" " * indent + f"Group: {name}")
-            print_hdf5_structure(item, indent + 2)
-        elif isinstance(item, h5py.Dataset):
-            print(" " * indent + f"Dataset: {name} (Shape: {item.shape}, Dtype: {item.dtype})")
+raw_paths = list(loaded_list["raw_paths"])
+label_paths = list(loaded_list["label_paths"])
 
-# Specify the HDF5 file path
-hdf5_file_path = '/path/to/your/file.h5'
+final_raw = []
+final_label = []
 
-# Open the HDF5 file in read mode
-with h5py.File(hdf5_file_path, 'r') as file:
-    # Print the structure and contents starting from the root group
-    print_hdf5_structure(file)
+n = len(raw_paths)
+for i in range(0,n):
+    if(i+9<n-1):
+        chunk = raw_paths[i:i+9]
+    else:
+        chunk = raw_paths[i:n-1]
+    final_raw.append(chunk)
+        
+    
+n = len(label_paths)
+for i in range(0,n):
+    if(i+9<n-1):
+        chunk = label_paths[i:i+9]
+    else:
+        chunk = label_paths[i:n-1]
+    final_label.append(chunk)
+    
+
+pickle_filename = 'paths_list.pickle'
+with open(pickle_filename, 'wb') as file:
+    pickle.dump({'final_raw': final_raw, 'final_label': final_label}, file)
+
