@@ -7,6 +7,7 @@ def load_and_visualize_nii(nii_path):
     
     # Get the image data as a NumPy array
     nii_data = nii_img.get_fdata()
+    print(type(nii_data))
     flat_list = nii_data.flatten()
 
     print(set(flat_list))
