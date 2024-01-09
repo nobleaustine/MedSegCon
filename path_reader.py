@@ -1,19 +1,25 @@
+# required libraries
 import os
-import random
 import pickle
+# import random
 
-def get_dicom_paths(root_path,animal_1):
-
+# function to get paths of with and without contrast images 1 and 5
+# systol and dystol
+def get_paths(root_path,animal_1):
+    
+    error_paths = []
+    # two required images type
     img1 =  "kontrast\DICOM\ST00001\SE00001\IM0000"
     img2 =  "kontrast i mageleie\DICOM\ST00001\SE00001\IM0000"
     
+    # collect all dicom images and labels
     raw_paths = []
     label_paths = []
 
     animal_1 = root_path + animal_1
     round_paths = []
     animal_paths = []
-    
+
     # taking all rounds and animal paths
     round_paths = [os.path.join(root_path, d) for d in os.listdir(root_path) if os.path.isdir(os.path.join(root_path, d))]
     animal_paths = [d for d in os.listdir(animal_1) if os.path.isdir(os.path.join(animal_1, d))]
@@ -39,7 +45,7 @@ def get_dicom_paths(root_path,animal_1):
                 raw_paths.append(file_path2)
                 label_paths.append(file_path3)
                 label_paths.append(file_path3)
-            else:
+            elif os.path.isfile(main + "\Hjerte med " + img2 + "1") :
                 file_path1 = main + "\Hjerte med " + img2 + "1"
                 file_path2 = main + "\Hjerte uten " + img2 + "1"
                 file_path3 = main + "\Hjerte med " + img2 + "1.nii.gz"
@@ -55,22 +61,27 @@ def get_dicom_paths(root_path,animal_1):
                 raw_paths.append(file_path2)
                 label_paths.append(file_path3)
                 label_paths.append(file_path3)
+            else:
+                error_paths.append(main)
 
         
 
-    combined_list = list(zip(raw_paths,label_paths))
-    random.shuffle(combined_list)
-    raw_paths,label_paths = zip(*combined_list)
+    # combined_list = list(zip(raw_paths,label_paths))
+    # random.shuffle(combined_list)
+    # raw_paths,label_paths = zip(*combined_list)
 
     # check values by printing if label and image are matching
     # for i,j in zip(raw_paths,label_paths):
     #     print(i)
     #     print(j)
 
-    return raw_paths,label_paths
+    return raw_paths,label_paths,error_paths
 
-raw_paths,label_paths= get_dicom_paths("D:\\Norsvin - CT Segmentation Data","\\AHFP-Scanrunde-1") 
+raw_paths,label_paths,error_paths = get_paths("D:\\Norsvin - CT Segmentation Data","\\AHFP-Scanrunde-1") 
 
+for i in error_paths :
+    print(i)
+# saving as a pickle file
 pickle_filename = 'paths.pickle'
 with open(pickle_filename, 'wb') as file:
-    pickle.dump({'raw_paths': raw_paths, 'label_paths': label_paths}, file)
+    pickle.dump({'raw_paths': raw_paths, 'label_paths': label_paths, 'error_paths': error_paths}, file)

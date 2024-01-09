@@ -1,33 +1,16 @@
-import pickle
+import pydicom
+import matplotlib.pyplot as plt
 
-with open("paths.pickle","rb") as file:
-    loaded_list = pickle.load(file)
+# Replace 'your_dicom_file.dcm' with the actual path to your DICOM file
+dicom_file_path = "D:\\Norsvin - CT Segmentation Data\\AHFP-Scanrunde-1\\Kontroll 4 - 7570 - Norsvin AHFP\\Hjerte med kontrast\\DICOM\\ST00001\\SE00001\\IM00001"
 
-raw_paths = list(loaded_list["raw_paths"])
-label_paths = list(loaded_list["label_paths"])
+# Read the DICOM file
+dicom_data = pydicom.dcmread(dicom_file_path)
 
-final_raw = []
-final_label = []
+# Extract pixel data from the DICOM file
+pixel_data = dicom_data.pixel_array
 
-n = len(raw_paths)
-for i in range(0,n):
-    if(i+9<n-1):
-        chunk = raw_paths[i:i+9]
-    else:
-        chunk = raw_paths[i:n-1]
-    final_raw.append(chunk)
-        
-    
-n = len(label_paths)
-for i in range(0,n):
-    if(i+9<n-1):
-        chunk = label_paths[i:i+9]
-    else:
-        chunk = label_paths[i:n-1]
-    final_label.append(chunk)
-    
-
-pickle_filename = 'paths_list.pickle'
-with open(pickle_filename, 'wb') as file:
-    pickle.dump({'final_raw': final_raw, 'final_label': final_label}, file)
-
+# Display the DICOM image using matplotlib
+plt.imshow(pixel_data[:,:,200], cmap=plt.cm.gray)
+plt.title('DICOM Image')
+plt.show()
