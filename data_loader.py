@@ -94,18 +94,20 @@ def read_stack_dicom(paths):
     return images
 
 # open the pickle file of list of list of paths
-with open("paths_list.pickle","rb") as file:
+with open("list_of_paths.pickle","rb") as file:
     loaded_list = pickle.load(file)
 
 # getting images and labels
-raw_paths = list(loaded_list["final_raw"])
-label_paths = list(loaded_list["final_label"])
+raw_paths = list(loaded_list["raw_paths"])
+label_paths = list(loaded_list["label_paths"])
 c=1
-# D:\Norsvin - CT Segmentation Data\AHFP-Scanrunde-5\Stent 1 - 7547 - Norsvin AHFP\Hjerte med kontrast i mageleie\DICOM\ST00001\SE00001
 # converting list of paths into images and labels and storing as hdf5 file
 for raw, label in zip(raw_paths,label_paths):
-    if c > 34 :
+    if c > 0 :
         print("LAP:",c)
+        # print(raw)
+        # print(label)
+
         dicom_matrices = read_stack_dicom(raw)
         nii_matrices = read_stack_nii(label)
         
@@ -113,6 +115,6 @@ for raw, label in zip(raw_paths,label_paths):
         
         # adding to hdf5 file
         print("hdf5 file uploading ...")
-        add_matrix(file_name, "data", dicom_matrices)
+        add_matrix(file_name, "raw", dicom_matrices)
         add_matrix(file_name, "label", nii_matrices)
     c+=1

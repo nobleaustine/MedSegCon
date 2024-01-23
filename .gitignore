@@ -1,4 +1,5 @@
-# Ignore all HDF5 files
+# Ignore all HDF5 files and zip files
 *.h5
 *.hdf5
-
+*.zip
+*.pickle
