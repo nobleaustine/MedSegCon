@@ -1,3 +1,4 @@
+
 # entire path logic 
 # only heart image with and without contrast 
 # is used and image 1 and 5 (systol and dystol)
@@ -42,31 +43,20 @@ def get_paths(root_path,round_1):
             sub_label_paths = []
             main = round + "\\" + animal
             if os.path.isfile(main + "\Hjerte med " + img1 + "1") :
-                # file_path1 = main + "\Hjerte med " + img1 + "1"
-                # file_path2 = main + "\Hjerte uten " + img1 + "1"
-                # file_path3 = main + "\Hjerte med " + img1 + "1.nii.gz"
                 sub_raw_paths.append(main + "\Hjerte med " + img1 + "1")
                 sub_raw_paths.append(main + "\Hjerte uten " + img1 + "1")
                 sub_label_paths.append(main + "\Hjerte med " + img1 + "1.nii.gz")
 
-                # file_path1 = main + "\Hjerte med " + img1 + "5"
-                # file_path2 = main + "\Hjerte uten " + img1 + "5"
-                # file_path3 = main + "\Hjerte med " + img1 + "5.nii.gz"
                 sub_raw_paths.append(main + "\Hjerte med " + img1 + "5")
                 sub_raw_paths.append(main + "\Hjerte uten " + img1 + "5")
                 sub_label_paths.append(main + "\Hjerte med " + img1 + "5.nii.gz")
 
             elif os.path.isfile(main + "\Hjerte med " + img2 + "1") :
-                 # file_path1 = main + "\Hjerte med " + img2 + "1"
-                # file_path2 = main + "\Hjerte uten " + img2 + "1"
-                # file_path3 = main + "\Hjerte med " + img2 + "1.nii.gz"
+               
                 sub_raw_paths.append(main + "\Hjerte med " + img2 + "1")
                 sub_raw_paths.append(main + "\Hjerte uten " + img2 + "1")
                 sub_label_paths.append(main + "\Hjerte med " + img2 + "1.nii.gz")
 
-                # file_path1 = main + "\Hjerte med " + img2 + "5"
-                # file_path2 = main + "\Hjerte uten " + img2 + "5"
-                # file_path3 = main + "\Hjerte med " + img2 + "5.nii.gz"
                 sub_raw_paths.append(main + "\Hjerte med " + img2 + "5")
                 sub_raw_paths.append(main + "\Hjerte uten " + img2 + "5")
                 sub_label_paths.append(main + "\Hjerte med " + img2 + "5.nii.gz")
@@ -79,33 +69,25 @@ def get_paths(root_path,round_1):
               raw_paths.append(sub_raw_paths)
               label_paths.append(sub_label_paths)
 
-
-    # combined_list = list(zip(raw_paths,label_paths))
-    # random.shuffle(combined_list)
-    # raw_paths,label_paths = zip(*combined_list)
-
-    # check values by printing if label and image are matching
-    # for i,j in zip(raw_paths,label_paths):
-    #     print(i)
-    #     print(j)
-
     return raw_paths,label_paths,error_paths
 
-raw_paths,label_paths,error_paths = get_paths("D:\\Norsvin - CT Segmentation Data","\\AHFP-Scanrunde-1") 
+if __name__ == "__main__":
+    # get raw paths and label
+    raw_paths,label_paths,error_paths = get_paths("D:\\Norsvin - CT Segmentation Data","\\AHFP-Scanrunde-1") 
 
 
-# print error paths
-print("error paths: ")
-for i in error_paths :
-    print(i)
-print("length : ",len(raw_paths))
+    # print error paths
+    print("error paths: ")
+    for i in error_paths :
+        print(i)
+    print("length : ",len(raw_paths))
 
-# cross checking
-# for i in range(55):
-#     print(i,raw_paths[i],label_paths[i])
-#     print("------------------")
+    # cross checking
+    # for i in range(55):
+    #     print(i,raw_paths[i],label_paths[i])
+    #     print("------------------")
 
-# saving as a pickle file
-pickle_filename = 'list_of_paths.pickle'
-with open(pickle_filename, 'wb') as file:
-    pickle.dump({'raw_paths': raw_paths, 'label_paths': label_paths, 'error_paths': error_paths}, file)
+    # saving as a pickle file
+    pickle_filename = 'list_of_paths.pickle'
+    with open(pickle_filename, 'wb') as file:
+        pickle.dump({'raw_paths': raw_paths, 'label_paths': label_paths, 'error_paths': error_paths}, file)
