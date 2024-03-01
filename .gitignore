@@ -1,6 +1,7 @@
-# Ignore all HDF5 files, zip files and pickle files
+# Ignore all HDF5 files, zip files, pickle files and jsons files
 *.h5
 *.hdf5
 *.zip
 *.pickle
 *.json
+./data_handling/credentials/
